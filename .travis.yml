@@ -1,0 +1,34 @@
+language: python
+python:
+  - "3.7.4"
+
+services:
+  - docker
+
+before_install:
+  - pip install -U pip
+
+install:
+  - easy_install distribute
+  - pip install -r requirements.txt
+  - pip install coverage codecov pytest-cov
+
+env:
+  global:
+    - SECRET_KEY = $SECRET_KEY_DJANGO
+
+script:
+  - pytest --cov=fitness --cov=blog --cov=users
+
+before_deploy:
+  - docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
+  - docker build -t jchamblee1995/django_website:latest .
+
+deploy:
+  provider: script
+  script: docker push jchamblee1995/django_website:latest
+  on:
+    branch: master
+
+after_success:
+  - codecov
